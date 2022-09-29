@@ -1,0 +1,67 @@
+version: "3.7"
+
+networks:
+  microservices-net:
+    driver: bridge
+
+services:
+  mysql:
+    container_name: mysql
+    image: mysql
+    networks:
+      - microservices-net
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: Dinhphuc2009.
+      MYSQL_DATABASE: springLearning
+    volumes:
+      - /home/vodinhphuc/lib/mysql:/var/lib/mysql
+  eureka-server:
+    container_name: eureka-server
+    build:
+      context: EurekaServer
+      dockerfile: Dockerfile
+    networks:
+      - microservices-net
+    ports:
+      - "8761:8761"
+  gateway-service:
+    container_name: gateway-service
+    build:
+      context: GatewayService
+      dockerfile: Dockerfile
+    networks:
+      - microservices-net
+    ports:
+      - "8762:8762"
+    depends_on:
+      - eureka-server
+  post-service:
+    container_name: post-service
+    restart: always
+    build:
+      context: PostService
+      dockerfile: Dockerfile
+    networks:
+      - microservices-net
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+      - mysql
+      - gateway-service
+  user-service:
+    container_name: user-service
+    restart: always
+    build:
+      context: UserService
+      dockerfile: Dockerfile
+    networks:
+      - microservices-net
+    ports:
+      - "8081:8081"
+    depends_on:
+      - eureka-server
+      - mysql
+      - gateway-service
